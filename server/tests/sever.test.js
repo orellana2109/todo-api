@@ -8,9 +8,17 @@ const {
     Todo
 } = require('./../models/todo');
 
+const todos = [{
+    text: 'First test todo'
+}, {
+    text: 'Second test todo'
+}];
+
 // this empties the database to ensure we begin with nothing in the database
 beforeEach((done) => {
-    Todo.deleteMany({}).then(() => done());
+    Todo.deleteMany({}).then(() => {
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 // 
