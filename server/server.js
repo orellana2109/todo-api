@@ -1,18 +1,18 @@
 var express = require('express');
 var bodyParser = require('body-parser'); 
 
-// local imports via ES6 destructering
+// local imports with ES6 destructering
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 // var {user} = require('./models/users');
 
 var app = express();
 
-//middleware
+//middleware 
 app.use(bodyParser.json());
 
 //routes
-app.post('/todos', (req, res) => {
+app.post('/todos', (req, res) => { 
     var todo = new Todo({
         text: req.body.text
     });
@@ -29,3 +29,4 @@ app.listen(3000, () => {
     console.log('Started on port 3000');
 });
 
+module.exports = {app};
