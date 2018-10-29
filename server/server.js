@@ -1,9 +1,13 @@
 var express = require('express');
-var bodyParser = require('body-parser'); 
+var bodyParser = require('body-parser');
 
 // local imports with ES6 destructering
-var {mongoose} = require('./db/mongoose');
-var {Todo} = require('./models/todo');
+var {
+    mongoose
+} = require('./db/mongoose');
+var {
+    Todo
+} = require('./models/todo');
 // var {user} = require('./models/users');
 
 var app = express();
@@ -12,7 +16,7 @@ var app = express();
 app.use(bodyParser.json());
 
 //routes
-app.post('/todos', (req, res) => { 
+app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text
     });
@@ -22,6 +26,14 @@ app.post('/todos', (req, res) => {
     }, (e) => {
         res.status(400).send(e);
     });
+});
+
+app.get('/todos', (req, res) => {
+    Todo.find().then((todos) => {
+        res.send({todos});
+    }, (e) => {
+        res.status(400).send(e);
+    })
 });
 
 //set up a port
