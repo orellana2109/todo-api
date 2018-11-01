@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -13,7 +14,7 @@ var UserSchema = new mongoose.Schema({
         validate: {
             validator: validator.isEmail,
             message: '{VALUE} is not a valid email'
-        } 
+        }
     },
     password: {
         type: String,
@@ -33,7 +34,7 @@ var UserSchema = new mongoose.Schema({
 });
 
 // this function lets us only return the id and email rather than the entire object
-UserSchema.methods.toJSON = function() {
+UserSchema.methods.toJSON = function () {
     var user = this;
     var userObject = user.toObject();
 
@@ -44,16 +45,22 @@ UserSchema.methods.toJSON = function() {
 UserSchema.methods.generateAuthToken = function () {
     var user = this;
     var access = 'auth';
-    var token = jwt.sign({_id: user._id.toHexString(), access}, 'abc123').toString();
+    var token = jwt.sign({
+        _id: user._id.toHexString(),
+        access
+    }, 'abc123').toString();
 
-    user.tokens = user.tokens.concat({access, token});
+    user.tokens = user.tokens.concat({
+        access,
+        token
+    });
 
     return user.save().then(() => {
         return token;
     });
 };
 
-UserSchema.statics.findByToken = function(token) {
+UserSchema.statics.findByToken = function (token) {
     var User = this;
     var decoded;
 
@@ -61,7 +68,7 @@ UserSchema.statics.findByToken = function(token) {
         decoded = jwt.verify(token, 'abc123');
     } catch (e) {
         return Promise.reject();
-        
+
     }
 
     return User.findOne({
@@ -71,7 +78,26 @@ UserSchema.statics.findByToken = function(token) {
     })
 }
 
+UserSchema.pre('save', function (next) {
+    var user = this;
+
+    if (user.isModified('password')) {
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next();
+            });
+        });
+    } else {
+
+        next();
+    }
+
+});
+
 var User = mongoose.model('User', UserSchema);
 
 
-module.exports = {User};
+module.exports = {
+    User
+};
